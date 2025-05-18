@@ -199,6 +199,7 @@
 /* Begin XCBuildConfiguration section */
 		8BF911F82DD454E300E8014F /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B0B20F622DDA09510063E4C0 /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -257,12 +258,12 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				TMAP_APP_KEY = nYAwaH7D3s9ufoZh7VRPUap21IoXM5yc8zNfax6M;
 			};
 			name = Debug;
 		};
 		8BF911F92DD454E300E8014F /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B0B20F622DDA09510063E4C0 /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -313,7 +314,6 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
-				TMAP_APP_KEY = nYAwaH7D3s9ufoZh7VRPUap21IoXM5yc8zNfax6M;
 			};
 			name = Release;
 		};
