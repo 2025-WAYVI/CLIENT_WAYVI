@@ -14,6 +14,7 @@ struct HomeNavigationView: View {
     @StateObject private var locationManager = LocationManager()
     @StateObject private var speechManager = SpeechManager()
     @State private var showResultView = false
+    @State private var showTransitView = false
 
     var body: some View {
         NavigationStack {
@@ -29,7 +30,7 @@ struct HomeNavigationView: View {
                     .buttonStyle(.borderedProminent)
 
                     Button(action: {
-                        // TODO: 대중교통 안내 기능 구현
+                        showTransitView = true
                     }) {
                         Label("대중교통 안내", systemImage: "bus")
                     }
@@ -43,6 +44,9 @@ struct HomeNavigationView: View {
                 } else {
                     Text("경로 정보를 불러오지 못했습니다.")
                 }
+            }
+            .navigationDestination(isPresented: $showTransitView) {
+                TransitSelectionView()
             }
             .onChange(of: viewModel.routeResult, initial: false) { oldValue, newValue in
                 if newValue != nil {
@@ -62,6 +66,46 @@ struct HomeNavigationView: View {
             if let destination = results?.first as? String,
                let location = locationManager.currentLocation {
                 viewModel.searchRoute(currentLocation: location, destination: destination)
+            }
+        }
+    }
+    
+    // MARK: - 위치 기반 대중교통 안내
+    private func announceNearbyTransit() {
+        guard let location = locationManager.currentLocation else {
+            speechManager.speak("현재 위치를 확인할 수 없습니다.")
+            return
+        }
+
+        let service = TransitSearchService()
+        let group = DispatchGroup()
+
+        var subwayResult: POIResult?
+        var busResult: POIResult?
+
+        group.enter()
+        service.searchNearbyPOI(keyword: "지하철역", coordinate: location) { result in
+            subwayResult = result
+            group.leave()
+        }
+
+        group.enter()
+        service.searchNearbyPOI(keyword: "버스정류장", coordinate: location) { result in
+            busResult = result
+            group.leave()
+        }
+
+        group.notify(queue: .main) {
+            if let subway = subwayResult {
+                speechManager.speak("근처 \(subway.distance)m 안에 \(subway.name)이 있습니다.")
+            } else {
+                speechManager.speak("근처 지하철역 정보를 찾을 수 없습니다.")
+            }
+
+            if let bus = busResult {
+                speechManager.speak("근처 \(bus.distance)m 안에 \(bus.name) 정류장이 있습니다.")
+            } else {
+                speechManager.speak("근처 버스 정류장 정보를 찾을 수 없습니다.")
             }
         }
     }
