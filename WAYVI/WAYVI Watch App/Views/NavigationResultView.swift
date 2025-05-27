@@ -67,6 +67,29 @@ struct NavigationResultView: View {
             if newValue, let message = pendingInstructionText {
                 speechManager.speak(message)
                 WKInterfaceDevice.current().play(.notification)
+
+                // 진동 횟수 설정
+                var vibrationCount = 1
+                switch message {
+                case "직진하세요":
+                    vibrationCount = 1
+                case "좌회전하세요":
+                    vibrationCount = 2
+                case "우회전하세요":
+                    vibrationCount = 3
+                case "유턴하세요":
+                    vibrationCount = 4
+                default:
+                    vibrationCount = 1
+                }
+
+                // 반복 진동 실행
+                for i in 0..<vibrationCount {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.3) {
+                        WKInterfaceDevice.current().play(.notification)
+                    }
+                }
+
                 shouldSpeakInstruction = false
             }
         }
