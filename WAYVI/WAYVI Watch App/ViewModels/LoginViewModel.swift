@@ -13,7 +13,7 @@ import SwiftUI
 
 class LoginViewModel: ObservableObject {
     @AppStorage("isLoggedIn") private var isLoggedIn = false
-    @Published var userId: Int64 = 0
+    @AppStorage("userId") var userId: Int = -1
     private let speechManager = SpeechManager()
 
     func login() {
