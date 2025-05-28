@@ -45,7 +45,7 @@ class HealthKitManager: NSObject, ObservableObject {
             print("HealthKit 사용 불가")
             throw HealthKitError.notAvailable
         }
-        (())
+        
         print("HealthKit 권한 요청 중...")
         let typesToRead = allTypes
         
