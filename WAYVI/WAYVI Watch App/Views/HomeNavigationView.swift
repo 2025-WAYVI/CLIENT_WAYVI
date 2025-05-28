@@ -14,6 +14,7 @@ struct HomeNavigationView: View {
     @StateObject private var locationManager = LocationManager()
     @StateObject private var speechManager = SpeechManager()
     @StateObject private var fallManager = FallDetectionManager.shared
+    @StateObject private var loginViewModel = LoginViewModel()
     @State private var showResultView = false
     @State private var showTransitView = false
 
@@ -57,7 +58,8 @@ struct HomeNavigationView: View {
                 }
             }
             .sheet(isPresented: $fallManager.fallDetected) {
-                HealthAlertView().environmentObject(fallManager)
+                HealthAlertView(userId: loginViewModel.userId)
+                    .environmentObject(fallManager)
             }
         }
     }
