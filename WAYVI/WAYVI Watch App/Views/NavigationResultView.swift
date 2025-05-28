@@ -22,6 +22,8 @@ struct NavigationResultView: View {
     @State private var emergencyCountdown: Int = 10
     @State private var isMotionZero: Bool = false
 
+    @AppStorage("userId") private var userId: Int = -1
+    
     var body: some View {
         VStack(spacing: 8) {
             Group {
@@ -155,8 +157,12 @@ struct NavigationResultView: View {
             if emergencyCountdown <= 1 {
                 timer.invalidate()
                 showEmergencyPrompt = false
-                
-                // TODO: 관제센터 구조 요청 메일 전송
+
+                HealthKitManager.shared.sendEmergencyRequest(
+                    userId: Int64(userId),
+                    event: "사용자의 움직임이 없습니다."
+                )
+
                 print("🚨 구조 요청 발송됨")
             } else {
                 emergencyCountdown -= 1

@@ -58,7 +58,7 @@ struct HomeNavigationView: View {
                 }
             }
             .sheet(isPresented: $fallManager.fallDetected) {
-                HealthAlertView(userId: loginViewModel.userId)
+                HealthAlertView(userId: Int64(loginViewModel.userId))
                     .environmentObject(fallManager)
             }
         }
