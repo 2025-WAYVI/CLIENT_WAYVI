@@ -4,5 +4,11 @@
 <dict>
 	<key>TMAP_APP_KEY</key>
 	<string>$(TMAP_APP_KEY)</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Manjari-Bold.ttf</string>
+		<string>Manjari-Thin.ttf</string>
+		<string>Manjari-Regular.ttf</string>
+	</array>
 </dict>
 </plist>
