@@ -41,9 +41,24 @@
 		B0B20F622DDA09510063E4C0 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B05FDF6D2DE7054F002156BE /* Exceptions for "WAYVI Watch App" folder in "WAYVI" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Resources/Fonts/Manjari-Bold.ttf",
+				"Resources/Fonts/Manjari-Regular.ttf",
+				"Resources/Fonts/Manjari-Thin.ttf",
+			);
+			target = 8BF911E32DD454E200E8014F /* WAYVI */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		8BF911EE2DD454E200E8014F /* WAYVI Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B05FDF6D2DE7054F002156BE /* Exceptions for "WAYVI Watch App" folder in "WAYVI" target */,
+			);
 			path = "WAYVI Watch App";
 			sourceTree = "<group>";
 		};
