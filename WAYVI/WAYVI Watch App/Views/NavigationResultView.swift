@@ -1,59 +1,35 @@
-//
-//  NavigationResultView.swift
-//  WAYVI
-//
-//  Created by 이지희 on 5/18/25.
-//
-
 import SwiftUI
 import AVFoundation
 import WatchKit
+import CoreLocation
+import CoreMotion
 
 struct NavigationResultView: View {
     @StateObject private var locationManager = LocationManager()
     @StateObject private var speechManager = SpeechManager()
+    private let motionManager = CMMotionManager()
 
     let result: RouteResult
+
     @State private var lastSpokenIndex: Int? = nil
     @State private var pendingInstructionText: String? = nil
     @State private var shouldSpeakInstruction = false
 
+    @State private var previousLocation: CLLocationCoordinate2D? = nil
+    @State private var stationaryCounter: Int = 0
+    @State private var showStayPrompt = false
+    @State private var showEmergencyPrompt = false
+    @State private var emergencyCountdown: Int = 10
+    @State private var isMotionZero: Bool = false
+
     var body: some View {
         VStack(spacing: 8) {
-            if let current = locationManager.currentLocation {
-
-                if let (index, feature) = nearestInstructionFeature(from: current),
-                   let coords = feature.geometry.coordinates?.first {
-                    let next = CLLocationCoordinate2D(latitude: coords[1], longitude: coords[0])
-                    let distance = calculateDistance(from: current, to: next)
-                    VStack(spacing: 2) {
-                        Text("다음 지점까지 거리")
-                            .font(.system(size: 18, weight: .bold))
-                        Text("\(Int(distance)) m")
-                            .font(.system(size: 30, weight: .bold))
-                    }
-                    .padding(.bottom, 4)
-
-                    if let turnType = feature.properties.turnType {
-                        let (text, icon) = directionTextAndIcon(for: turnType)
-                        Label(text, systemImage: icon)
-                            .font(.system(size: 18, weight: .bold))
-                            .padding(.top, 4)
-
-                        if distance < 20 && lastSpokenIndex != index {
-                            Color.clear.frame(height: 0)
-                                .onAppear {
-                                    lastSpokenIndex = index
-                                    pendingInstructionText = text
-                                    shouldSpeakInstruction = true
-                                }
-                        }
-                    }
+            Group {
+                if let current = locationManager.currentLocation {
+                    navigationInfoSection(current: current)
                 } else {
-                    Text("다음 안내 지점을 찾을 수 없습니다.")
+                    Text("위치 정보를 가져오는 중입니다...")
                 }
-            } else {
-                Text("위치 정보를 가져오는 중입니다...")
             }
 
             Divider()
@@ -63,34 +39,128 @@ struct NavigationResultView: View {
         .onAppear {
             locationManager.start()
         }
+        .onChange(of: locationManager.currentLocation) { _, current in
+            guard let current = current else { return }
+            handleLocationUpdate(current)
+        }
         .onChange(of: shouldSpeakInstruction) { _, newValue in
             if newValue, let message = pendingInstructionText {
-                speechManager.speak(message)
-                WKInterfaceDevice.current().play(.notification)
+                triggerSpeech(for: message)
+            }
+        }
+        .alert("계속 길안내를 받으시겠습니까?", isPresented: $showStayPrompt) {
+            Button("예") {
+                stationaryCounter = 0
+                showStayPrompt = false
+            }
+            Button("아니오") {
+                showStayPrompt = false
+                showEmergencyPrompt = true
+                speechManager.speak("응답이 없습니다. 구조요청을 보내겠습니다. 10초 안에 취소할 수 있습니다")
+                startEmergencyCountdown()
+            }
+        }
+        .alert("구조 요청 전 \(emergencyCountdown)초 남음", isPresented: $showEmergencyPrompt) {
+            Button("취소") {
+                showEmergencyPrompt = false
+                emergencyCountdown = 10
+                stationaryCounter = 0
+            }
+        }
+    }
 
-                // 진동 횟수 설정
-                var vibrationCount = 1
-                switch message {
-                case "직진하세요":
-                    vibrationCount = 1
-                case "좌회전하세요":
-                    vibrationCount = 2
-                case "우회전하세요":
-                    vibrationCount = 3
-                case "유턴하세요":
-                    vibrationCount = 4
-                default:
-                    vibrationCount = 1
+    @ViewBuilder
+    private func navigationInfoSection(current: CLLocationCoordinate2D) -> some View {
+        if let (index, feature) = nearestInstructionFeature(from: current),
+           let coords = feature.geometry.coordinates?.first {
+
+            let next = CLLocationCoordinate2D(latitude: coords[1], longitude: coords[0])
+            let distance = calculateDistance(from: current, to: next)
+
+            let turnType = feature.properties.turnType
+            let (text, icon) = directionTextAndIcon(for: turnType ?? 0)
+
+            VStack(spacing: 2) {
+                Text("다음 지점까지 거리")
+                    .font(.system(size: 18, weight: .bold))
+                Text("\(Int(distance)) m")
+                    .font(.system(size: 30, weight: .bold))
+
+                if let turnType {
+                    Label(text, systemImage: icon)
+                        .font(.system(size: 18, weight: .bold))
+                        .padding(.top, 4)
                 }
-
-                // 반복 진동 실행
-                for i in 0..<vibrationCount {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.3) {
-                        WKInterfaceDevice.current().play(.notification)
+            }
+            .padding(.bottom, 4)
+            .background(
+                Color.clear.onAppear {
+                    if distance < 20 && lastSpokenIndex != index {
+                        lastSpokenIndex = index
+                        pendingInstructionText = text
+                        shouldSpeakInstruction = true
                     }
                 }
+            )
 
-                shouldSpeakInstruction = false
+        } else {
+            Text("다음 안내 지점을 찾을 수 없습니다.")
+        }
+    }
+
+    private func handleLocationUpdate(_ current: CLLocationCoordinate2D) {
+        print("📍 현재 위치: \(current.latitude), \(current.longitude)")
+
+        if let previous = previousLocation {
+            let distance = calculateDistance(from: previous, to: current)
+            print("📏 이전 위치와의 거리: \(distance) m")
+
+            if distance < 3 {
+                stationaryCounter += 1
+                print("⚠️ 동일 위치 감지 횟수 증가: \(stationaryCounter)")
+            } else {
+                stationaryCounter = 0
+            }
+
+            if stationaryCounter >= 10 && !showStayPrompt {
+                showStayPrompt = true
+                speechManager.speak("현재 같은 곳에 머물러 계신 것으로 확인됩니다. 괜찮으신가요?")
+            }
+        }
+
+        previousLocation = current
+    }
+
+    private func triggerSpeech(for message: String) {
+        speechManager.speak(message)
+        var vibrationCount = 1
+        switch message {
+        case "직진하세요": vibrationCount = 1
+        case "좌회전하세요": vibrationCount = 2
+        case "우회전하세요": vibrationCount = 3
+        case "유턴하세요": vibrationCount = 4
+        default: vibrationCount = 1
+        }
+
+        for i in 0..<vibrationCount {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.3) {
+                WKInterfaceDevice.current().play(.notification)
+            }
+        }
+
+        shouldSpeakInstruction = false
+    }
+
+    private func startEmergencyCountdown() {
+        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+            if emergencyCountdown <= 1 {
+                timer.invalidate()
+                showEmergencyPrompt = false
+                
+                // TODO: 관제센터 구조 요청 메일 전송
+                print("🚨 구조 요청 발송됨")
+            } else {
+                emergencyCountdown -= 1
             }
         }
     }
@@ -128,5 +198,11 @@ struct NavigationResultView: View {
         let fromLoc = CLLocation(latitude: from.latitude, longitude: from.longitude)
         let toLoc = CLLocation(latitude: to.latitude, longitude: to.longitude)
         return fromLoc.distance(from: toLoc)
+    }
+}
+
+extension CLLocationCoordinate2D: Equatable {
+    public static func == (lhs: CLLocationCoordinate2D, rhs: CLLocationCoordinate2D) -> Bool {
+        return lhs.latitude == rhs.latitude && lhs.longitude == rhs.longitude
     }
 }
