@@ -17,7 +17,7 @@ class LoginViewModel: ObservableObject {
         speechManager.speak("로그인을 시도합니다.")
 
         // 테스트용 로그인 성공 처리
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
             self.userId = 1
             self.isLoggedIn = true
             self.speechManager.speak("웨이비 앱을 실행합니다.")
