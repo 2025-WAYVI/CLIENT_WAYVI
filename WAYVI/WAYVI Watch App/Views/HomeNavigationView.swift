@@ -13,6 +13,7 @@ struct HomeNavigationView: View {
     @StateObject private var viewModel = NavigationViewModel()
     @StateObject private var locationManager = LocationManager()
     @StateObject private var speechManager = SpeechManager()
+    @StateObject private var fallManager = FallDetectionManager.shared
     @State private var showResultView = false
     @State private var showTransitView = false
 
@@ -52,6 +53,9 @@ struct HomeNavigationView: View {
                 if newValue != nil {
                     showResultView = true
                 }
+            }
+            .sheet(isPresented: $fallManager.fallDetected) {
+                HealthAlertView().environmentObject(fallManager)
             }
         }
     }

@@ -126,6 +126,76 @@ class HealthKitManager: NSObject, ObservableObject {
             return .count()
         }
     }
+    
+    func sendRealTimeHealthData(userId: String, heartRate: Double, stepCount: Int, activeEnergyBurned: Int, runningSpeed: [Double], accel: [Double], gyro: [Double]) {
+        let url = URL(string: "https://아직url몰라용/api/v1/health-data")!
+
+        let formatter = ISO8601DateFormatter()
+        let timestamp = formatter.string(from: Date())
+
+        let requestBody: [String: Any] = [
+            "userId": userId,
+            "timestamp": timestamp,
+            "dataType": "REALTIME",
+            "heartRate": heartRate,
+            "stepCount": stepCount,
+            "activeEnergyBurned": activeEnergyBurned,
+            "runningSpeed": runningSpeed,
+            "accel": accel,
+            "gyro": gyro
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("오류 발생: \(error.localizedDescription)")
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse else { return }
+            print("응답 코드: \(httpResponse.statusCode)")
+
+            if let data = data {
+                do {
+                    let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
+                    
+                    if let json = jsonObject as? [String: Any] {
+                        print("응답 내용: \(json)")
+
+                        if let anomalyDetected = json["anomalyDetected"] as? Bool,
+                           anomalyDetected,
+                           let event = json["event"] as? String {
+                            
+                            DispatchQueue.main.async {
+                                let message: String
+                                
+                                switch event {
+                                case "낙상/충돌":
+                                    message = "낙상 또는 충돌이 감지되었습니다."
+                                case "심박 이상":
+                                    message = "심박 이상이 감지되었습니다."
+                                case "과로":
+                                    message = "과로 징후가 감지되었습니다."
+                                default:
+                                    message = "건강 이상이 감지되었습니다."
+                                }
+
+                                SpeechManager().speak("\(message) 괜찮으신가요? 버튼을 눌러 응답해주세요.")
+                                FallDetectionManager.shared.alertMessage = message
+                                FallDetectionManager.shared.fallDetected = true
+                            }
+                        }
+                    }
+                } catch {
+                    print("JSON 파싱 에러: \(error.localizedDescription)")
+                }
+            }
+        }.resume()
+    }
 }
 
 // MARK: - 오류 정의
