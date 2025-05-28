@@ -160,7 +160,7 @@ struct NavigationResultView: View {
 
                 HealthKitManager.shared.sendEmergencyRequest(
                     userId: Int64(userId),
-                    event: "사용자의 움직임이 없습니다."
+                    event: "움직임 없음"
                 )
 
                 print("🚨 구조 요청 발송됨")
