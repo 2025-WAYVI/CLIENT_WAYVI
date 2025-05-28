@@ -39,6 +39,16 @@ struct HomeNavigationView: View {
                         Label("대중교통 안내", systemImage: "bus")
                     }
                     .buttonStyle(.bordered)
+                    
+                    NavigationLink(destination: HealthReportView()) {
+                        Label("건강 레포트", systemImage: "heart.text.square")
+                    }
+                    .buttonStyle(.bordered)
+                    .simultaneousGesture(
+                        TapGesture().onEnded {
+                            speechManager.speak("건강 레포트를 누르셨습니다.")
+                        }
+                    )
                 }
             }
             .padding()
@@ -58,7 +68,7 @@ struct HomeNavigationView: View {
                 }
             }
             .sheet(isPresented: $fallManager.fallDetected) {
-                HealthAlertView(userId: loginViewModel.userId)
+                HealthAlertView(userId: Int64(loginViewModel.userId))
                     .environmentObject(fallManager)
             }
         }
