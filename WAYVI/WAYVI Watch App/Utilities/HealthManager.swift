@@ -39,7 +39,7 @@ class HealthKitManager: NSObject, ObservableObject {
         super.init()
     }
     
-    // MARK: - HealthKit 권한 요청
+    // HealthKit 권한 요청
     func requestAuthorization() async throws {
         guard HKHealthStore.isHealthDataAvailable() else {
             print("HealthKit 사용 불가")
@@ -56,13 +56,13 @@ class HealthKitManager: NSObject, ObservableObject {
         print("HealthKit 권한 허용됨")
     }
     
-    // MARK: - HealthData 생성
+    // HealthData 생성
     func fetchHealthData(with coordinate: CLLocationCoordinate2D?) async throws -> HealthData {
         let samples = try await fetchData(for: allTypes)
         return HealthData.from(healthKitData: samples, coordinate: coordinate)
     }
     
-    // MARK: - 샘플 데이터 쿼리
+    // 샘플 데이터 쿼리
     private func fetchData(for types: Set<HKSampleType>) async throws -> [HKSample] {
         var allSamples: [HKSample] = []
         
@@ -77,11 +77,10 @@ class HealthKitManager: NSObject, ObservableObject {
                 print("데이터 없음: \(quantityType.identifier)")
             }
         }
-        
         return allSamples
     }
     
-    // MARK: - 최신 샘플 한 개 쿼리
+    // 최신 샘플 한 개 쿼리
     private func fetchLatestData(for type: HKQuantityType) async throws -> HKQuantitySample? {
         return try await withCheckedThrowingContinuation { continuation in
             let sort = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
@@ -90,14 +89,12 @@ class HealthKitManager: NSObject, ObservableObject {
                     continuation.resume(throwing: error)
                     return
                 }
-                let sample = samples?.first as? HKQuantitySample
-                continuation.resume(returning: sample)
+                continuation.resume(returning: samples?.first as? HKQuantitySample)
             }
             healthStore.execute(query)
         }
     }
 
-    // MARK: - 단위 설정
     private func preferredUnit(for type: HKQuantityType) -> HKUnit {
         switch type.identifier {
         case HKQuantityTypeIdentifier.stepCount.rawValue:
@@ -126,53 +123,54 @@ class HealthKitManager: NSObject, ObservableObject {
             return .count()
         }
     }
-    
-    func sendRealTimeHealthData(userId: String, heartRate: Double, stepCount: Int, activeEnergyBurned: Int, runningSpeed: [Double], accel: [Double], gyro: [Double]) {
-        let url = URL(string: "https://아직url몰라용/api/v1/health-data")!
 
+    // 구조요청 API 호출 메서드
+    func sendEmergencyRequest(userId: Int64, event: String) {
+        guard let location = LocationManager().currentLocation else {
+            print("위치 정보를 가져올 수 없습니다.")
+            return
+        }
+
+        let url = URL(string: "https://아직url몰라용/api/v1/emergency/request/\(userId)")!
         let formatter = ISO8601DateFormatter()
         let timestamp = formatter.string(from: Date())
 
-        let requestBody: [String: Any] = [
-            "userId": userId,
-            "timestamp": timestamp,
-            "dataType": "REALTIME",
-            "heartRate": heartRate,
-            "stepCount": stepCount,
-            "activeEnergyBurned": activeEnergyBurned,
-            "runningSpeed": runningSpeed,
-            "accel": accel,
-            "gyro": gyro
+        let body: [String: Any] = [
+            "event": event,
+            "latitude": location.latitude,
+            "longitude": location.longitude,
+            "timestamp": timestamp
         ]
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                print("오류 발생: \(error.localizedDescription)")
+                print("구조 요청 실패: \(error.localizedDescription)")
                 return
             }
 
-            guard let httpResponse = response as? HTTPURLResponse else { return }
-            print("응답 코드: \(httpResponse.statusCode)")
+            if let httpResponse = response as? HTTPURLResponse {
+                print("구조 요청 응답 코드: \(httpResponse.statusCode)")
+            }
 
             if let data = data {
                 do {
                     let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-                    
+
                     if let json = jsonObject as? [String: Any] {
                         print("응답 내용: \(json)")
 
                         if let anomalyDetected = json["anomalyDetected"] as? Bool,
                            anomalyDetected,
                            let event = json["event"] as? String {
-                            
+
                             DispatchQueue.main.async {
                                 let message: String
-                                
+
                                 switch event {
                                 case "낙상/충돌":
                                     message = "낙상 또는 충돌이 감지되었습니다."
@@ -198,7 +196,6 @@ class HealthKitManager: NSObject, ObservableObject {
     }
 }
 
-// MARK: - 오류 정의
 enum HealthKitError: Error {
     case notAvailable
 }

@@ -8,9 +8,8 @@
 import Foundation
 
 struct RealTimeHealthRequest: Codable {
-    let userId: String
     let timestamp: String
-    let dataType: String // "REALTIME"
+    let dataType: String
     let heartRate: Double
     let stepCount: Int
     let activeEnergyBurned: Int
