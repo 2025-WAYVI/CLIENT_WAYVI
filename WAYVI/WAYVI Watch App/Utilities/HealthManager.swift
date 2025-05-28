@@ -178,6 +178,8 @@ class HealthKitManager: NSObject, ObservableObject {
                                     message = "심박 이상이 감지되었습니다."
                                 case "과로":
                                     message = "과로 징후가 감지되었습니다."
+                                case "움직임 없음":
+                                    message = "움직임이 없습니다."
                                 default:
                                     message = "건강 이상이 감지되었습니다."
                                 }
