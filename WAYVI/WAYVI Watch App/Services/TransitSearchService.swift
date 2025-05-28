@@ -11,11 +11,13 @@ import CoreLocation
 class TransitSearchService {
     private let appKey = Bundle.main.infoDictionary?["TMAP_APP_KEY"] as? String ?? ""
 
-    func searchNearbyPOI(keyword: String, coordinate: CLLocationCoordinate2D, completion: @escaping (POIResult?) -> Void) {
-        let urlString = "https://apis.openapi.sk.com/tmap/pois?version=1&searchKeyword=\(keyword)&centerLat=\(coordinate.latitude)&centerLon=\(coordinate.longitude)&count=1&resCoordType=WGS84GEO"
+    func searchNearbyCategory(category: String, coordinate: CLLocationCoordinate2D, completion: @escaping (POIResult?) -> Void) {
+        let encodedCategory = category.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let urlString = """
+        https://apis.openapi.sk.com/tmap/pois/search/around?version=1&centerLat=\(coordinate.latitude)&centerLon=\(coordinate.longitude)&categories=\(encodedCategory)&radius=2&count=1&resCoordType=WGS84GEO
+        """
 
-        guard let encodedURL = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: encodedURL) else {
+        guard let url = URL(string: urlString) else {
             completion(nil)
             return
         }
@@ -23,6 +25,7 @@ class TransitSearchService {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue(appKey, forHTTPHeaderField: "appKey")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
 
         URLSession.shared.dataTask(with: request) { data, _, _ in
             guard let data = data,
@@ -32,13 +35,14 @@ class TransitSearchService {
                   let poiList = pois["poi"] as? [[String: Any]],
                   let first = poiList.first,
                   let name = first["name"] as? String,
-                  let distanceStr = first["distance"] as? String,
-                  let distance = Int(distanceStr) else {
+                  let radiusStr = first["radius"] as? String,
+                  let distanceKm = Double(radiusStr) else {
                 completion(nil)
                 return
             }
 
-            completion(POIResult(name: name, distance: distance))
+            let distanceMeters = Int(distanceKm * 1000)
+            completion(POIResult(name: name, distance: distanceMeters))
         }.resume()
     }
 }

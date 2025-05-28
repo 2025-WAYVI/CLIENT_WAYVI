@@ -24,6 +24,7 @@ struct HomeNavigationView: View {
                     ProgressView("길을 찾는 중...")
                 } else {
                     Button(action: {
+                        speechManager.speak("길 안내 시작을 누르셨습니다.")
                         presentSpeechInput()
                     }) {
                         Label("길 안내 시작", systemImage: "location.fill")
@@ -31,6 +32,7 @@ struct HomeNavigationView: View {
                     .buttonStyle(.borderedProminent)
 
                     Button(action: {
+                        speechManager.speak("대중교통 안내를 누르셨습니다.")
                         showTransitView = true
                     }) {
                         Label("대중교통 안내", systemImage: "bus")
@@ -88,13 +90,12 @@ struct HomeNavigationView: View {
         var busResult: POIResult?
 
         group.enter()
-        service.searchNearbyPOI(keyword: "지하철역", coordinate: location) { result in
+        service.searchNearbyCategory(category: "지하철역", coordinate: location) { result in
             subwayResult = result
             group.leave()
         }
 
-        group.enter()
-        service.searchNearbyPOI(keyword: "버스정류장", coordinate: location) { result in
+        service.searchNearbyCategory(category: "버스정류장", coordinate: location) { result in
             busResult = result
             group.leave()
         }
