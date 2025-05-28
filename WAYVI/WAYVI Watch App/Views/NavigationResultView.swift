@@ -113,7 +113,6 @@ struct NavigationResultView: View {
 
         if let previous = previousLocation {
             let distance = calculateDistance(from: previous, to: current)
-            print("📏 이전 위치와의 거리: \(distance) m")
 
             if distance < 3 {
                 stationaryCounter += 1
