@@ -65,6 +65,22 @@ class HealthAPIService {
                             SpeechManager().speak("\(message) 괜찮으신가요? 버튼을 눌러 응답해주세요.")
                             FallDetectionManager.shared.alertMessage = message
                             FallDetectionManager.shared.fallDetected = true
+                            
+                            if event == "과로", let location = LocationManager().currentLocation {
+                                let service = TransitSearchService()
+                                
+                                service.searchNearbyCategory(category: "카페", coordinate: location) { cafe in
+                                    if let cafe = cafe {
+                                        SpeechManager().speak("가까운 휴식 장소로 카페 \(cafe.name), 약 \(cafe.distance)미터 거리에 있습니다.")
+                                    }
+
+                                    service.searchNearbyCategory(category: "공원", coordinate: location) { park in
+                                        if let park = park {
+                                            SpeechManager().speak("또 다른 선택지로 공원 \(park.name), 약 \(park.distance)미터 거리에 있습니다.")
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
 
