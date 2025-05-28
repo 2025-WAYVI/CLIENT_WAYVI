@@ -9,6 +9,7 @@ import SwiftUI
 import AVFoundation
 
 struct HealthAlertView: View {
+    var userId: Int64
     @EnvironmentObject var fallManager: FallDetectionManager
     @Environment(\.dismiss) var dismiss
     @State private var isResponseReceived = false
@@ -36,7 +37,10 @@ struct HealthAlertView: View {
                     isResponseReceived = true
                     fallManager.fallDetected = false
                     dismiss()
-                    // TODO: 구조요청 API 호출
+                    HealthKitManager.shared.sendEmergencyRequest(
+                        userId: userId,
+                        event: fallManager.alertMessage
+                    )
                 }
                 .buttonStyle(.bordered)
             }
@@ -52,7 +56,10 @@ struct HealthAlertView: View {
             if !isResponseReceived {
                 timerFired = true
                 speechManager.speak("응답이 없습니다. 구조 요청을 보내겠습니다. 10초 안에 취소할 수 있습니다.")
-                // TODO: 구조요청 API 호출
+                HealthKitManager.shared.sendEmergencyRequest(
+                    userId: userId,
+                    event: fallManager.alertMessage
+                )
             }
         }
     }
