@@ -27,7 +27,7 @@ struct NavigationResultView: View {
     @AppStorage("userId") private var userId: Int = -1
     
     @StateObject private var submissionViewModel = HealthSubmissionViewModel()
-    
+        
     var body: some View {
         VStack(spacing: 8) {
             Group {
@@ -191,8 +191,12 @@ struct NavigationResultView: View {
             if emergencyCountdown <= 1 {
                 timer.invalidate()
                 showEmergencyPrompt = false
-                
-                // TODO: 관제센터 구조 요청 메일 전송
+
+                HealthKitManager.shared.sendEmergencyRequest(
+                    userId: Int64(userId),
+                    event: "움직임 없음"
+                )
+
                 print("🚨 구조 요청 발송됨")
             } else {
                 emergencyCountdown -= 1
