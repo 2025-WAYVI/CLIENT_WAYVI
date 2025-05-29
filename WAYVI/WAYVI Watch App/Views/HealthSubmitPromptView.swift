@@ -17,25 +17,26 @@ struct HealthSubmitPromptView: View {
     @State private var isSubmitting = false
     
     var body: some View {
-        VStack(spacing: 16) {
-            Text("목적지에 도착했습니다.\n건강 데이터를 제출하시겠습니까?")
-                .multilineTextAlignment(.center)
-                .font(.headline)
-                .padding()
-            
-            Button("제출") {
-                submit()
+        ScrollView {
+            VStack(spacing: 5) {
+                Text("건강 데이터를 제출하시겠습니까?")
+                    .multilineTextAlignment(.center)
+                    .font(.headline)
+
+                Button("제출") {
+                    submit()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(isSubmitting)
+
+                Button("취소") {
+                    speechManager.speak("건강 데이터 제출을 취소했습니다.")
+                    onComplete()
+                }
+                .buttonStyle(.bordered)
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(isSubmitting)
-            
-            Button("취소") {
-                speechManager.speak("건강 데이터 제출을 취소했습니다.")
-                onComplete()
-            }
-            .buttonStyle(.bordered)
+            .padding()
         }
-        .padding()
         .onAppear {
             if !didAnnounce {
                 speechManager.speak("목적지에 도착했습니다. 건강 데이터를 제출하시겠습니까?")

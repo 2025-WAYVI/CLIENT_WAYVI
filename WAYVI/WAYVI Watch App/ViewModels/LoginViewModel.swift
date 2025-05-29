@@ -31,7 +31,7 @@ class LoginViewModel: ObservableObject {
 //
 //class LoginViewModel: ObservableObject {
 //    @AppStorage("isLoggedIn") private var isLoggedIn = false
-//    @Published var userId: Int64 = 0
+//    @AppStorage("userId") var userId: Int = -1
 //
 //    private let speechManager = SpeechManager()
 //
@@ -40,7 +40,7 @@ class LoginViewModel: ObservableObject {
 //            DispatchQueue.main.async {
 //                switch result {
 //                case .success(let response):
-//                    self.userId = Int64(response.userId) ?? 0
+//                    self.userId = response.userId
 //                    self.isLoggedIn = true
 //                    self.speechManager.speak("웨이비 앱을 실행합니다.")
 //                case .failure(let error):
