@@ -29,11 +29,11 @@ class HealthSubmissionViewModel: ObservableObject {
             activeEnergyBurnedEndDate: formatter.string(from: endOfDay),
             height: healthData.measurements.height,
             bodyMass: healthData.measurements.weight,
-            oxygenSaturation: [healthData.measurements.oxygenSaturation ?? 0],
+            oxygenSaturation: Array(repeating: 97.5, count: 8),
             bloodPressureSystolic: healthData.measurements.bloodPressureSystolic,
             bloodPressureDiastolic: healthData.measurements.bloodPressureDiastolic,
-            respiratoryRate: [healthData.measurements.respiratoryRate ?? 0],
-            bodyTemperature: [healthData.measurements.bodyTemperature ?? 0]
+            respiratoryRate: [18, 18, 18, 18, 19, 18, 18, 18],
+            bodyTemperature: [36.5, 36.5, 36.6, 36.6, 36.7, 36.6, 36.6, 36.7]
         )
 
         HealthDailyAPIService.shared.submitHealthData(userId: userId, request: request, completion: completion)

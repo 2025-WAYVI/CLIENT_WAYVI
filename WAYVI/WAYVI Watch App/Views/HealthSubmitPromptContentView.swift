@@ -35,11 +35,11 @@ struct HealthSubmitPromptContentView: View {
             activeEnergyBurnedEndDate: formatter.string(from: endOfDay),
             height: m.height,
             bodyMass: m.weight,
-            oxygenSaturation: [m.oxygenSaturation ?? 0],
+            oxygenSaturation: Array(repeating: 97.5, count: 8),  // 고정
             bloodPressureSystolic: m.bloodPressureSystolic,
             bloodPressureDiastolic: m.bloodPressureDiastolic,
-            respiratoryRate: [m.respiratoryRate ?? 0],
-            bodyTemperature: [m.bodyTemperature ?? 0]
+            respiratoryRate: [18, 18, 18, 18, 19, 18, 18, 18],   // 고정
+            bodyTemperature: [36.5, 36.5, 36.6, 36.6, 36.7, 36.6, 36.6, 36.7] // 고정
         )
 
         return HealthSubmitPromptView(
