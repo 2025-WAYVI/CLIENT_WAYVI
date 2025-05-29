@@ -9,5 +9,5 @@ import Foundation
 
 struct LoginResponse: Codable {
     let status: String
-    let userId: Int64
+    let userId: Int
 }
