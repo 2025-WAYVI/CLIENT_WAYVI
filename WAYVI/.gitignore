@@ -114,4 +114,7 @@ iOSInjectionProject/
 # Secrets.xconfig
 *.xcconfig
 
+# APPConfig
+WAYVI/WAYVI Watch App/Config/AppConfig.swift
+
 # End of https://www.toptal.com/developers/gitignore/api/xcode,cocoapods,swift
