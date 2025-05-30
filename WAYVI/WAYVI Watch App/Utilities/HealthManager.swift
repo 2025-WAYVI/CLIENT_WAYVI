@@ -131,7 +131,7 @@ class HealthKitManager: NSObject, ObservableObject {
             return
         }
 
-        let url = URL(string: "https://아직url몰라용/api/v1/emergency/request/\(userId)")!
+        let url = URL(string: "https://api.azaping.p-e.kr/api/v1/emergency/request/\(userId)")!
         let formatter = ISO8601DateFormatter()
         let timestamp = formatter.string(from: Date())
 
@@ -173,15 +173,15 @@ class HealthKitManager: NSObject, ObservableObject {
 
                                 switch event {
                                 case "낙상/충돌":
-                                    message = "낙상 또는 충돌이 감지되었습니다."
+                                    message = "낙상 또는 충돌이 감지되었습니다"
                                 case "심박 이상":
-                                    message = "심박 이상이 감지되었습니다."
+                                    message = "심박 이상이 감지되었습니다"
                                 case "과로":
-                                    message = "과로 징후가 감지되었습니다."
+                                    message = "과로 징후가 감지되었습니다"
                                 case "움직임 없음":
-                                    message = "움직임이 없습니다."
+                                    message = "움직임이 없습니다"
                                 default:
-                                    message = "건강 이상이 감지되었습니다."
+                                    message = "건강 이상이 감지되었습니다"
                                 }
 
                                 SpeechManager().speak("\(message) 괜찮으신가요? 버튼을 눌러 응답해주세요.")

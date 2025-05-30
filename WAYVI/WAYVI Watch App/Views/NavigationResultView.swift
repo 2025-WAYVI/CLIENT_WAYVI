@@ -21,9 +21,13 @@ struct NavigationResultView: View {
     @State private var showEmergencyPrompt = false
     @State private var emergencyCountdown: Int = 10
     @State private var isMotionZero: Bool = false
-
+    @State private var showHealthSubmitPrompt = false
+    
+    @State private var healthData: HealthData? = nil
     @AppStorage("userId") private var userId: Int = -1
     
+    @StateObject private var submissionViewModel = HealthSubmissionViewModel()
+        
     var body: some View {
         VStack(spacing: 8) {
             Group {
@@ -40,6 +44,16 @@ struct NavigationResultView: View {
         }
         .onAppear {
             locationManager.start()
+            
+            Task {
+                do {
+                    try await HealthKitManager.shared.requestAuthorization()
+                    let samples = try await HealthKitManager.shared.fetchHealthData(with: locationManager.currentLocation)
+                    self.healthData = samples
+                } catch {
+                    print("❌ HealthKit 에러: \(error.localizedDescription)")
+                }
+            }
         }
         .onChange(of: locationManager.currentLocation) { _, current in
             guard let current = current else { return }
@@ -67,6 +81,21 @@ struct NavigationResultView: View {
                 showEmergencyPrompt = false
                 emergencyCountdown = 10
                 stationaryCounter = 0
+            }
+        }
+        .sheet(isPresented: $showHealthSubmitPrompt) {
+            Group {
+                if let healthData = healthData {
+                    HealthSubmitPromptContentView(
+                        userId: Int64(userId),
+                        healthData: healthData,
+                        onComplete: {
+                            showHealthSubmitPrompt = false
+                        }
+                    )
+                } else {
+                    Text("건강 데이터를 불러오는 중입니다.")
+                }
             }
         }
     }
@@ -101,6 +130,11 @@ struct NavigationResultView: View {
                         lastSpokenIndex = index
                         pendingInstructionText = text
                         shouldSpeakInstruction = true
+                        
+                        // 도착 지점일 경우 건강 제출 팝업 띄우기
+                        if turnType == 201 {
+                            showHealthSubmitPrompt = true
+                        }
                     }
                 }
             )

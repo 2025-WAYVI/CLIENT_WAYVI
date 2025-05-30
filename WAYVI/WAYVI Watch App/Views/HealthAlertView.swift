@@ -21,6 +21,8 @@ struct HealthAlertView: View {
             Text(fallManager.alertMessage)
                 .font(.headline)
                 .multilineTextAlignment(.center)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
 
             Text("괜찮으신가요?")
                 .font(.subheadline)

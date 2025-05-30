@@ -12,7 +12,7 @@ class HealthAPIService {
     private init() {}
 
     func postRealTimeHealthData(_ data: RealTimeHealthRequest, userId: Int64, completion: @escaping (Result<String, Error>) -> Void) {
-        guard let url = URL(string: "https://아직url몰라용/api/v1/health-data/realtime/\(userId)") else {
+        guard let url = URL(string: "https://api.azaping.p-e.kr/api/v1/health-data/realtime/\(userId)") else {
             completion(.failure(NSError(domain: "Invalid URL", code: -1)))
             return
         }
