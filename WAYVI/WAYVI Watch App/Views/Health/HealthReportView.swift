@@ -18,36 +18,67 @@ struct HealthReportView: View {
             VStack(alignment: .leading, spacing: 12) {
                 if let report = viewModel.report {
                     Group {
-                        HStack {
-                            Image(systemName: "heart.text.square")
-                            Text("건강 요약: \(report.summary)")
-                                .font(.headline)
+                        VStack(alignment: .center, spacing: 4) {
+                            Label("건강 요약", systemImage: "heart.text.square")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .multilineTextAlignment(.center)
+                            Text(report.summary)
+                                .font(.body)
+                                .multilineTextAlignment(.center)
                         }
+                        .frame(maxWidth: .infinity)
+                        .padding(.bottom, 8)
 
-                        HStack {
-                            Image(systemName: "figure.walk")
-                            Text("걸음수: \(report.stepCount) (\(report.stepCountChange)% 변화)")
+                        VStack(alignment: .center, spacing: 4) {
+                            Label("걸음수", systemImage: "figure.walk")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .multilineTextAlignment(.center)
+                            Text("\(report.stepCount) 걸음 (\(report.stepCountChange)% 변화)")
+                                .font(.body)
                         }
+                        .frame(maxWidth: .infinity)
 
-                        HStack {
-                            Image(systemName: "heart.fill")
-                            Text("평균 심박수: \(report.averageHeartRate)bpm (\(report.heartRateChange)%)")
+                        VStack(alignment: .center, spacing: 4) {
+                            Label("평균 심박수", systemImage: "heart.fill")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .multilineTextAlignment(.center)
+                            Text("\(report.averageHeartRate) bpm (\(report.heartRateChange)%)")
+                                .font(.body)
                         }
+                        .frame(maxWidth: .infinity)
 
-                        HStack {
-                            Image(systemName: "lungs.fill")
-                            Text("평균 산소포화도: \(report.averageOxygenSaturation)%")
+                        VStack(alignment: .center, spacing: 4) {
+                            Label("평균 산소포화도", systemImage: "lungs.fill")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .multilineTextAlignment(.center)
+                            Text("\(report.averageOxygenSaturation)%")
+                                .font(.body)
                         }
+                        .frame(maxWidth: .infinity)
 
-                        HStack {
-                            Image(systemName: "thermometer")
-                            Text("평균 체온: \(report.averageBodyTemperature, specifier: "%.1f")℃")
+                        VStack(alignment: .center, spacing: 4) {
+                            Label("평균 체온", systemImage: "thermometer")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .multilineTextAlignment(.center)
+                            Text("\(report.averageBodyTemperature, specifier: "%.1f")℃")
+                                .font(.body)
                         }
+                        .frame(maxWidth: .infinity)
 
-                        HStack {
-                            Image(systemName: "flame.fill")
-                            Text("활동 에너지: \(report.activeEnergyBurned)kcal (\(report.activeEnergyChange)%)")
+                        VStack(alignment: .center, spacing: 4) {
+                            Label("활동 에너지", systemImage: "flame.fill")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .multilineTextAlignment(.center)
+                            Text("\(report.activeEnergyBurned) kcal (\(report.activeEnergyChange)%)")
+                                .font(.body)
                         }
+                        .frame(maxWidth: .infinity)
                     }
 
                     if !report.warning.isEmpty {
