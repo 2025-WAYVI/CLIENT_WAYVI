@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct HealthSubmitPromptView: View {
-    let userId: Int64
+    let userId: Int
     let request: DailyHealthRequest
     var onComplete: () -> Void
     
@@ -18,10 +18,11 @@ struct HealthSubmitPromptView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 5) {
+            VStack(spacing: 10) {
                 Text("건강 데이터를 제출하시겠습니까?")
                     .multilineTextAlignment(.center)
-                    .font(.headline)
+                    .font(.system(size: 22, weight: .bold))
+                    .padding(.top, -10)
 
                 Button("제출") {
                     submit()
@@ -59,4 +60,31 @@ struct HealthSubmitPromptView: View {
             }
         }
     }
+}
+
+#Preview {
+    HealthSubmitPromptView(
+        userId: 1,
+        request: DailyHealthRequest(
+            timestamp: "2025-05-29T12:00:00Z",
+            stepCount: 8000,
+            stepCountStartDate: "2025-05-29T00:00:00Z",
+            stepCountEndDate: "2025-05-29T23:59:59Z",
+            runningSpeed: [5.6],
+            runningSpeedStartDate: "2025-05-29T00:00:00Z",
+            runningSpeedEndDate: "2025-05-29T23:59:59Z",
+            basalEnergyBurned: 1200.0,
+            activeEnergyBurned: 300.0,
+            activeEnergyBurnedStartDate: "2025-05-29T00:00:00Z",
+            activeEnergyBurnedEndDate: "2025-05-29T23:59:59Z",
+            height: 165.0,
+            bodyMass: 55.0,
+            oxygenSaturation: Array(repeating: 97.5, count: 8),
+            bloodPressureSystolic: 110,
+            bloodPressureDiastolic: 70,
+            respiratoryRate: [18, 18, 18, 18, 19, 18, 18, 18],
+            bodyTemperature: [36.5, 36.6, 36.6, 36.7, 36.5, 36.6, 36.7, 36.6]
+        ),
+        onComplete: {}
+    )
 }

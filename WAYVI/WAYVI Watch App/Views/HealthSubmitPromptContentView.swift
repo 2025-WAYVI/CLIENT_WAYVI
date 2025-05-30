@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct HealthSubmitPromptContentView: View {
-    let userId: Int64
+    let userId: Int
     let healthData: HealthData
     var onComplete: () -> Void
 

@@ -86,7 +86,7 @@ struct NavigationResultView: View {
             Group {
                 if let healthData = healthData {
                     HealthSubmitPromptContentView(
-                        userId: Int64(userId),
+                        userId: userId,
                         healthData: healthData,
                         onComplete: {
                             showHealthSubmitPrompt = false
