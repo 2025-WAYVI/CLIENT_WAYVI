@@ -16,6 +16,8 @@ class HealthKitManager: NSObject, ObservableObject {
     
     @Published var isAuthorized = false
     
+    private let baseURL = AppConfig.baseURL
+    
     // 수집할 데이터 유형들
     private lazy var allTypes: Set<HKSampleType> = {
         let types: [HKSampleType] = [
@@ -131,7 +133,7 @@ class HealthKitManager: NSObject, ObservableObject {
             return
         }
 
-        let url = URL(string: "https://아직url몰라용/api/v1/emergency/request/\(userId)")!
+        let url = URL(string: "\(baseURL)/api/v1/emergency/request/\(userId)")!
         let formatter = ISO8601DateFormatter()
         let timestamp = formatter.string(from: Date())
 

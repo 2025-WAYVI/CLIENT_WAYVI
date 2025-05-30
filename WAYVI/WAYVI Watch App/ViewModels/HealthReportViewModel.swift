@@ -11,7 +11,7 @@ class HealthReportViewModel: ObservableObject {
     @Published var report: HealthReportResponse?
     @Published var errorMessage: String?
 
-    private let baseURL = "https://example.com"
+    private let baseURL = AppConfig.baseURL
     
     func fetchHealthReport(userId: Int, date: String) {
         guard let url = URL(string: "\(baseURL)/api/v1/health-report/\(userId)/\(date)") else {
