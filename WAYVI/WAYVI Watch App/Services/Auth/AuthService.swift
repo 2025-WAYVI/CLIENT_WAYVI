@@ -10,7 +10,7 @@ import Foundation
 class AuthService {
     static let shared = AuthService()
     
-    private let baseURL = AppConfig.baseURL // TODO: 서버 도메인으로 수정 or 전역으로 관리할 수 있도록 수정
+    private let baseURL = AppConfig.baseURL
 
     func login(completion: @escaping (Result<LoginResponse, Error>) -> Void) {
         let uuid = DeviceUUIDManager.shared.uuid
