@@ -17,7 +17,7 @@ import Foundation
 class HealthDailyAPIService {
     static let shared = HealthDailyAPIService()
     
-    private let baseURL = "https://example.com" // TODO: 서버 도메인으로 수정 or 전역으로 관리할 수 있도록 수정
+    private let baseURL = AppConfig.baseURL
 
     func submitHealthData(userId: Int, request: DailyHealthRequest, completion: @escaping (Bool) -> Void) {
         guard let url = URL(string: "\(baseURL)/api/v1/health-data/daily/\(userId)") else {
