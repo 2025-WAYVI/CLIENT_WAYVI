@@ -40,7 +40,6 @@ struct NavigationResultView: View {
 
             Divider()
             Text("총 거리: \(result.features.first?.properties.totalDistance ?? 0)m")
-            Text("총 소요시간: \(result.features.first?.properties.totalTime ?? 0)초")
         }
         .onAppear {
             locationManager.start()
