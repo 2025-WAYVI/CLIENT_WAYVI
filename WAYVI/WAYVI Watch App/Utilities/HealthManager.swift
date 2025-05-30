@@ -131,7 +131,7 @@ class HealthKitManager: NSObject, ObservableObject {
             return
         }
 
-        let url = URL(string: "https://api.azaping.p-e.kr/api/v1/emergency/request/\(userId)")!
+        let url = URL(string: "https://baseurl/api/v1/emergency/request/\(userId)")!
         let formatter = ISO8601DateFormatter()
         let timestamp = formatter.string(from: Date())
 
