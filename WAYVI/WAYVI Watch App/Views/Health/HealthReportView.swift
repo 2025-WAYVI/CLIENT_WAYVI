@@ -91,7 +91,7 @@ struct HealthReportView: View {
                                 .foregroundColor(.red)
 
                             ForEach(report.warning, id: \.self) { warning in
-                                Text("- \(warning)")
+                                Text("\(warning)")
                                     .foregroundColor(.red)
                             }
                         }
@@ -104,8 +104,35 @@ struct HealthReportView: View {
                         }
                     }
                 } else if let errorMessage = viewModel.errorMessage {
-                    Text("에러: \(errorMessage)")
-                        .foregroundColor(.red)
+                    GeometryReader { geometry in
+                        ZStack {
+                            Color.black.edgesIgnoringSafeArea(.all)
+                            
+                            VStack(spacing: 5) {
+                                Text("⚠️")
+                                    .font(.system(size: 50))
+                                Text("에러 발생")
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                Text(errorMessage)
+                                    .multilineTextAlignment(.center)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal)
+                                    .lineLimit(nil)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .padding()
+                            .background(Color.black.opacity(0.8))
+                            .cornerRadius(20)
+                            .frame(maxWidth: geometry.size.width * 0.9)
+                            .offset(y: geometry.size.height * 5)
+                            .onAppear {
+                                speechManager.speak("에러가 발생했습니다. \(errorMessage)")
+                            }
+                        }
+                        .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
+                    }
                 } else {
                     ProgressView("건강 리포트를 불러오는 중...")
                         .onAppear {
@@ -124,3 +151,4 @@ struct HealthReportView: View {
         return formatter.string(from: Date())
     }
 }
+
