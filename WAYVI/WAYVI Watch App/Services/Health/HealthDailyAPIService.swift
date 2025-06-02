@@ -37,7 +37,7 @@ class HealthDailyAPIService {
         }
 
         URLSession.shared.dataTask(with: urlRequest) { data, response, error in
-            if let error = error {
+            if error != nil {
                 completion(false)
                 return
             }
