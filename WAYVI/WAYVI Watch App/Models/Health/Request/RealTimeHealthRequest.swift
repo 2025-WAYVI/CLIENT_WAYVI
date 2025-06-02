@@ -9,7 +9,6 @@ import Foundation
 
 struct RealTimeHealthRequest: Codable {
     let timestamp: String
-    let dataType: String
     let heartRate: Double
     let stepCount: Int
     let activeEnergyBurned: Int
