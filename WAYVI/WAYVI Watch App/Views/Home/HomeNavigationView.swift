@@ -52,6 +52,9 @@ struct HomeNavigationView: View {
                 }
             }
             .padding()
+            .onAppear {
+                speechManager.speak("홈 화면입니다.")
+            }
             .navigationDestination(isPresented: $showResultView) {
                 if let result = viewModel.routeResult {
                     NavigationResultView(result: result)
