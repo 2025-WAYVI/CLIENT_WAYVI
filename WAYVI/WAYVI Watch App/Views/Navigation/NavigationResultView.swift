@@ -10,6 +10,7 @@ struct NavigationResultView: View {
     private let motionManager = CMMotionManager()
 
     let result: RouteResult
+    let countdownTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     @State private var lastSpokenIndex: Int? = nil
     @State private var pendingInstructionText: String? = nil
@@ -22,6 +23,7 @@ struct NavigationResultView: View {
     @State private var emergencyCountdown: Int = 10
     @State private var isMotionZero: Bool = false
     @State private var showHealthSubmitPrompt = false
+    @State private var showEmergencyCompletedPrompt = false
     
     @State private var healthData: HealthData? = nil
     @AppStorage("userId") private var userId: Int = -1
@@ -35,19 +37,6 @@ struct NavigationResultView: View {
                     navigationInfoSection(current: current)
                 } else {
                     Text("위치 정보를 가져오는 중입니다...")
-                }
-            }
-        }
-        .onAppear {
-            locationManager.start()
-            
-            Task {
-                do {
-                    try await HealthKitManager.shared.requestAuthorization()
-                    let samples = try await HealthKitManager.shared.fetchHealthData(with: locationManager.currentLocation)
-                    self.healthData = samples
-                } catch {
-                    print("❌ HealthKit 에러: \(error.localizedDescription)")
                 }
             }
         }
@@ -72,11 +61,45 @@ struct NavigationResultView: View {
                 startEmergencyCountdown()
             }
         }
-        .alert("구조 요청 전 \(emergencyCountdown)초 남음", isPresented: $showEmergencyPrompt) {
-            Button("취소") {
-                showEmergencyPrompt = false
-                emergencyCountdown = 10
-                stationaryCounter = 0
+        .overlay(
+            Group {
+                if showEmergencyPrompt {
+                    VStack(spacing: 12) {
+                        Text("구조 요청까지")
+                            .font(.headline)
+                        Text("\(emergencyCountdown)초 남음")
+                            .font(.largeTitle)
+                            .bold()
+                        Button("취소") {
+                            showEmergencyPrompt = false
+                            emergencyCountdown = 10
+                            stationaryCounter = 0
+                        }
+                        .padding(.top, 8)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.black)
+                    .foregroundColor(.white)
+                }
+            }
+        )
+        .onReceive(countdownTimer) { _ in
+            if showEmergencyPrompt {
+                if emergencyCountdown <= 1 {
+                    showEmergencyPrompt = false
+                    emergencyCountdown = 10
+
+                    HealthKitManager.shared.sendEmergencyRequest(
+                        userId: Int64(userId),
+                        event: "움직임 없음"
+                    )
+
+                    print("🚨 구조 요청 발송됨")
+
+                    speechManager.speak("구조 요청이 완료되었습니다")
+
+                    showEmergencyCompletedPrompt = true
+                }
             }
         }
         .sheet(isPresented: $showHealthSubmitPrompt) {
