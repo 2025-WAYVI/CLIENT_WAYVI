@@ -23,7 +23,6 @@ struct NavigationResultView: View {
     @State private var emergencyCountdown: Int = 10
     @State private var isMotionZero: Bool = false
     @State private var showHealthSubmitPrompt = false
-    @State private var showEmergencyCompletedPrompt = false
     
     @State private var healthData: HealthData? = nil
     @AppStorage("userId") private var userId: Int = -1
@@ -83,25 +82,6 @@ struct NavigationResultView: View {
                 }
             }
         )
-        .onReceive(countdownTimer) { _ in
-            if showEmergencyPrompt {
-                if emergencyCountdown <= 1 {
-                    showEmergencyPrompt = false
-                    emergencyCountdown = 10
-
-                    HealthKitManager.shared.sendEmergencyRequest(
-                        userId: Int64(userId),
-                        event: "움직임 없음"
-                    )
-
-                    print("🚨 구조 요청 발송됨")
-
-                    speechManager.speak("구조 요청이 완료되었습니다")
-
-                    showEmergencyCompletedPrompt = true
-                }
-            }
-        }
         .sheet(isPresented: $showHealthSubmitPrompt) {
             Group {
                 if let healthData = healthData {
