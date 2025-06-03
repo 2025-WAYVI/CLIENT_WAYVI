@@ -12,16 +12,18 @@ struct HealthSubmitPromptView: View {
     let request: DailyHealthRequest
     var onComplete: () -> Void
     
+    @Environment(\.dismiss) private var dismiss
+    @AppStorage("navigateToHome") private var navigateToHome = false
     @StateObject private var speechManager = SpeechManager()
     @State private var didAnnounce = false
     @State private var isSubmitting = false
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 10) {
+            VStack(spacing: 5) {
                 Text("건강 데이터를 제출하시겠습니까?")
                     .multilineTextAlignment(.center)
-                    .font(.system(size: 22, weight: .bold))
+                    .font(.system(size: 20, weight: .bold))
                     .padding(.top, -10)
 
                 Button("제출") {
@@ -32,6 +34,7 @@ struct HealthSubmitPromptView: View {
 
                 Button("취소") {
                     speechManager.speak("건강 데이터 제출을 취소했습니다.")
+                    dismiss()
                     onComplete()
                 }
                 .buttonStyle(.bordered)
@@ -53,9 +56,11 @@ struct HealthSubmitPromptView: View {
                 isSubmitting = false
                 if success {
                     speechManager.speak("건강 데이터를 성공적으로 제출했습니다.")
+                    navigateToHome = true
                 } else {
                     speechManager.speak("건강 데이터 제출에 실패했습니다.")
                 }
+                dismiss()
                 onComplete()
             }
         }

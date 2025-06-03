@@ -23,6 +23,7 @@ struct NavigationResultView: View {
     @State private var emergencyCountdown: Int = 10
     @State private var isMotionZero: Bool = false
     @State private var showHealthSubmitPrompt = false
+    @State private var shouldNavigateToHome = false
     
     @State private var healthData: HealthData? = nil
     @AppStorage("userId") private var userId: Int = -1
@@ -90,6 +91,7 @@ struct NavigationResultView: View {
                         healthData: healthData,
                         onComplete: {
                             showHealthSubmitPrompt = false
+                            shouldNavigateToHome = true
                         }
                     )
                 } else {
@@ -147,7 +149,17 @@ struct NavigationResultView: View {
                     }
 
                     if turnType == 201 {
-                        showHealthSubmitPrompt = true
+                        Task {
+                            do {
+                                let data = try await HealthKitManager.shared.fetchHealthData(with: current)
+                                DispatchQueue.main.async {
+                                    self.healthData = data
+                                    self.showHealthSubmitPrompt = true
+                                }
+                            } catch {
+                                print("❌ 건강 데이터 수집 실패: \(error)")
+                            }
+                        }
                     }
                 }
             )

@@ -10,6 +10,7 @@ import WatchKit
 import AVFoundation
 
 struct HomeNavigationView: View {
+    @AppStorage("navigateToHome") private var navigateToHome = false
     @StateObject private var viewModel = NavigationViewModel()
     @StateObject private var locationManager = LocationManager()
     @StateObject private var speechManager = SpeechManager()
@@ -68,6 +69,13 @@ struct HomeNavigationView: View {
             .onChange(of: viewModel.routeResult, initial: false) { oldValue, newValue in
                 if newValue != nil {
                     showResultView = true
+                }
+            }
+            .onChange(of: navigateToHome) { _, newValue in
+                if newValue {
+                    showResultView = false
+                    navigateToHome = false
+                    speechManager.speak("홈 화면으로 돌아왔습니다.")
                 }
             }
             .sheet(isPresented: $fallManager.fallDetected) {
