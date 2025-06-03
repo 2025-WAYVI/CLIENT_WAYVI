@@ -37,9 +37,6 @@ struct NavigationResultView: View {
                     Text("위치 정보를 가져오는 중입니다...")
                 }
             }
-
-            Divider()
-            Text("총 거리: \(result.features.first?.properties.totalDistance ?? 0)m")
         }
         .onAppear {
             locationManager.start()
@@ -108,7 +105,7 @@ struct NavigationResultView: View {
             let distance = calculateDistance(from: current, to: next)
 
             let turnType = feature.properties.turnType
-            let (text, icon) = directionTextAndIcon(for: turnType ?? 0)
+            let (text, icon) = directionTextAndIcon(for: turnType, feature: feature)
 
             VStack(spacing: 2) {
                 Text("다음 지점까지 거리")
@@ -116,24 +113,38 @@ struct NavigationResultView: View {
                 Text("\(Int(distance)) m")
                     .font(.system(size: 30, weight: .bold))
 
-                if let turnType {
-                    Label(text, systemImage: icon)
+                if !text.isEmpty && !icon.isEmpty {
+                    Label {
+                        Text(text)
+                            .font(.system(size: 18, weight: .bold))
+                            .multilineTextAlignment(.center)
+                            .lineLimit(nil)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } icon: {
+                        Image(systemName: icon)
+                    }
+                    .padding(.top, 4)
+
+                } else if !text.isEmpty {
+                    Text(text)
                         .font(.system(size: 18, weight: .bold))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
                         .padding(.top, 4)
                 }
             }
             .padding(.bottom, 4)
             .background(
                 Color.clear.onAppear {
-                    if distance < 20 && lastSpokenIndex != index {
-                        lastSpokenIndex = index
-                        pendingInstructionText = text
+                    let spokenText = instructionText(for: feature, distance: distance)
+                    if !spokenText.isEmpty {
+                        pendingInstructionText = spokenText
                         shouldSpeakInstruction = true
-                        
-                        // 도착 지점일 경우 건강 제출 팝업 띄우기
-                        if turnType == 201 {
-                            showHealthSubmitPrompt = true
-                        }
+                    }
+
+                    if turnType == 201 {
+                        showHealthSubmitPrompt = true
                     }
                 }
             )
@@ -221,14 +232,39 @@ struct NavigationResultView: View {
             })
     }
 
-    private func directionTextAndIcon(for turnType: Int) -> (String, String) {
+    private func directionTextAndIcon(for turnType: Int?, feature: RouteFeature) -> (String, String) {
         switch turnType {
         case 1: return ("직진하세요", "arrow.up")
         case 2: return ("좌회전하세요", "arrow.turn.left.up")
         case 3: return ("우회전하세요", "arrow.turn.right.up")
         case 12: return ("유턴하세요", "arrow.uturn.left")
         case 201: return ("목적지에 도착했습니다", "flag")
-        default: return ("경로를 따라 이동하세요", "location")
+        default:
+            if let desc = feature.properties.description, !desc.isEmpty {
+                return (desc, "info.circle")
+            } else {
+                return ("", "")
+            }
+        }
+    }
+    
+    private func instructionText(for feature: RouteFeature, distance: CLLocationDistance) -> String {
+        let turnType = feature.properties.turnType ?? 0
+        let distanceText = "\(Int(distance))미터"
+
+        switch turnType {
+        case 1: return "\(distanceText) 직진하세요"
+        case 2: return "\(distanceText) 좌회전하세요"
+        case 3: return "\(distanceText) 우회전하세요"
+        case 12: return "\(distanceText) 유턴하세요"
+        case 201: return "목적지에 도착했습니다"
+        default:
+            // description이 있다면 그것을 안내로 활용
+            if let desc = feature.properties.description, !desc.isEmpty {
+                return "\(distanceText) \(desc)"
+            } else {
+                return ""
+            }
         }
     }
 
