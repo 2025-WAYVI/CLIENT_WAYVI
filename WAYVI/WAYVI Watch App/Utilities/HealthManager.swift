@@ -128,6 +128,11 @@ class HealthKitManager: NSObject, ObservableObject {
 
     // 구조요청 API 호출 메서드
     func sendEmergencyRequest(userId: Int64, event: String) {
+        if event == "과로 징후가 감지되었습니다" {
+            print("과로는 구조요청 제외")
+            return
+        }
+        
         guard let location = LocationManager().currentLocation else {
             print("위치 정보를 가져올 수 없습니다.")
             return

@@ -13,6 +13,7 @@ class FallDetectionManager: ObservableObject {
 
     @Published var fallDetected: Bool = false
     @Published var alertMessage: String = ""
+    @Published var showFatigueView: Bool = false
 
-    private init() {}
+    public init() {}
 }
