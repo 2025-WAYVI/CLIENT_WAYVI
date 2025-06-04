@@ -31,7 +31,7 @@ struct HomeNavigationView: View {
                     }) {
                         Label("길 안내 시작", systemImage: "location.fill")
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.bordered)
 
                     Button(action: {
                         speechManager.speak("대중교통 안내를 누르셨습니다.")
