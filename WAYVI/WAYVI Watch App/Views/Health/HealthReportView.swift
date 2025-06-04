@@ -85,7 +85,7 @@ struct HealthReportView: View {
                     }
                     .onAppear {
                         if !hasSpokenSummary {
-                            speechManager.speak(commentText(for: report.summary))
+                            speechManager.speak("어제는 " + report.summary + "으로 분류되었습니다" + commentText(for: report.summary))
                             hasSpokenSummary = true
                         }
                     }
