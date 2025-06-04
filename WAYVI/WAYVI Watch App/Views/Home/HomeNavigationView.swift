@@ -74,6 +74,9 @@ struct HomeNavigationView: View {
                 HealthAlertView(userId: Int64(loginViewModel.userId))
                     .environmentObject(fallManager)
             }
+            .sheet(isPresented: $fallManager.showFatigueView) {
+                FatigueDetectedView(message: fallManager.alertMessage)
+            }
         }
     }
 
