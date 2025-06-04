@@ -8,10 +8,13 @@
 import SwiftUI
 
 struct HealthReportView: View {
-    @StateObject private var viewModel = HealthReportViewModel()
     @AppStorage("userId") private var userId: Int = -1
+    
+    @StateObject private var viewModel = HealthReportViewModel()
     @StateObject private var speechManager = SpeechManager()
+    
     @State private var hasSpokenWarning = false
+    @State private var hasSpokenSummary = false
 
     var body: some View {
         ScrollView {
@@ -80,21 +83,30 @@ struct HealthReportView: View {
                         }
                         .frame(maxWidth: .infinity)
                     }
+                    .onAppear {
+                        if !hasSpokenSummary {
+                            speechManager.speak("어제는 " + report.summary + "으로 분류되었습니다" + commentText(for: report.summary))
+                            hasSpokenSummary = true
+                        }
+                    }
 
-                    if !report.warning.isEmpty {
-                        Divider()
-                            .padding(.top, 8)
+                    if report.summary == "위험신호형" && !report.warning.isEmpty {
+                        Divider().padding(.top, 8)
 
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .center, spacing: 4) {
                             Text("⚠️ 건강 주의사항 ⚠️")
                                 .font(.headline)
+                                .fontWeight(.bold)
                                 .foregroundColor(.red)
+                                .multilineTextAlignment(.center)
 
                             ForEach(report.warning, id: \.self) { warning in
-                                Text("\(warning)")
+                                Text(warning)
                                     .foregroundColor(.red)
+                                    .multilineTextAlignment(.center)
                             }
                         }
+                        .frame(maxWidth: .infinity)
                         .onAppear {
                             if !hasSpokenWarning {
                                 let joined = report.warning.joined(separator: ", ")
@@ -119,8 +131,6 @@ struct HealthReportView: View {
                                     .multilineTextAlignment(.center)
                                     .foregroundColor(.white)
                                     .padding(.horizontal)
-                                    .lineLimit(nil)
-                                    .fixedSize(horizontal: false, vertical: true)
                             }
                             .padding()
                             .background(Color.black.opacity(0.8))
@@ -145,10 +155,24 @@ struct HealthReportView: View {
         }
     }
 
+    private func commentText(for summary: String) -> String {
+        switch summary {
+        case "건강 유지형":
+            return "오늘도 활기찬 하루 보내세요!"
+        case "저활동형":
+            return "오늘은 가벼운 산책이나 스트레칭을 추천드립니다."
+        case "과로주의형":
+            return "오늘은 충분한 휴식과 수분섭취를 권장드립니다."
+        case "위험신호형":
+            return "컨디션을 확인하고 필요시 전문의 상담을 권장드립니다."
+        default:
+            return ""
+        }
+    }
+
     private func formattedDate() -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: Date())
     }
 }
-

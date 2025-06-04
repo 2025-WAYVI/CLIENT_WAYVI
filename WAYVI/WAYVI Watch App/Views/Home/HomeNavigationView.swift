@@ -10,6 +10,7 @@ import WatchKit
 import AVFoundation
 
 struct HomeNavigationView: View {
+    @AppStorage("navigateToHome") private var navigateToHome = false
     @StateObject private var viewModel = NavigationViewModel()
     @StateObject private var locationManager = LocationManager()
     @StateObject private var speechManager = SpeechManager()
@@ -17,6 +18,7 @@ struct HomeNavigationView: View {
     @StateObject private var loginViewModel = LoginViewModel()
     @State private var showResultView = false
     @State private var showTransitView = false
+    @State private var showMockNavigation = false
 
     var body: some View {
         NavigationStack {
@@ -30,7 +32,7 @@ struct HomeNavigationView: View {
                     }) {
                         Label("길 안내 시작", systemImage: "location.fill")
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.bordered)
 
                     Button(action: {
                         speechManager.speak("대중교통 안내를 누르셨습니다.")
@@ -44,11 +46,11 @@ struct HomeNavigationView: View {
                         Label("건강 레포트", systemImage: "heart.text.square")
                     }
                     .buttonStyle(.bordered)
-                    .simultaneousGesture(
-                        TapGesture().onEnded {
-                            speechManager.speak("건강 레포트를 누르셨습니다.")
-                        }
-                    )
+//                    .simultaneousGesture(
+//                        TapGesture().onEnded {
+//                            speechManager.speak("건강 레포트를 누르셨습니다.")
+//                        }
+//                    )
                 }
             }
             .padding()
@@ -62,12 +64,22 @@ struct HomeNavigationView: View {
                     Text("경로 정보를 불러오지 못했습니다.")
                 }
             }
+            .navigationDestination(isPresented: $showMockNavigation) {
+                MockNavigationView()
+            }
             .navigationDestination(isPresented: $showTransitView) {
                 TransitSelectionView()
             }
             .onChange(of: viewModel.routeResult, initial: false) { oldValue, newValue in
                 if newValue != nil {
                     showResultView = true
+                }
+            }
+            .onChange(of: navigateToHome) { _, newValue in
+                if newValue {
+                    showResultView = false
+                    navigateToHome = false
+                    speechManager.speak("홈 화면으로 돌아왔습니다.")
                 }
             }
             .sheet(isPresented: $fallManager.fallDetected) {
@@ -89,7 +101,11 @@ struct HomeNavigationView: View {
         ) { results in
             if let destination = results?.first as? String,
                let location = locationManager.currentLocation {
+                showResultView = false
                 viewModel.searchRoute(currentLocation: location, destination: destination)
+//                // 실제 API 호출 대신 Mock 보기로 전환
+//                // TODO
+//                            showMockNavigation = true
             }
         }
     }

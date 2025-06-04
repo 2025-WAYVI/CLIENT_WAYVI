@@ -10,6 +10,8 @@ struct NavigationResultView: View {
     private let motionManager = CMMotionManager()
 
     let result: RouteResult
+    let countdownTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    @State private var isFrozen = false
 
     @State private var lastSpokenIndex: Int? = nil
     @State private var pendingInstructionText: String? = nil
@@ -39,18 +41,8 @@ struct NavigationResultView: View {
             }
         }
         .onAppear {
-            locationManager.start()
-            
-            Task {
-                do {
-                    try await HealthKitManager.shared.requestAuthorization()
-                    let samples = try await HealthKitManager.shared.fetchHealthData(with: locationManager.currentLocation)
-                    self.healthData = samples
-                } catch {
-                    print("❌ HealthKit 에러: \(error.localizedDescription)")
-                }
+                speechManager.speak("길안내를 시작합니다.")
             }
-        }
         .onChange(of: locationManager.currentLocation) { _, current in
             guard let current = current else { return }
             handleLocationUpdate(current)
@@ -63,22 +55,38 @@ struct NavigationResultView: View {
         .alert("계속 길안내를 받으시겠습니까?", isPresented: $showStayPrompt) {
             Button("예") {
                 stationaryCounter = 0
+                isFrozen = false
                 showStayPrompt = false
             }
             Button("아니오") {
                 showStayPrompt = false
                 showEmergencyPrompt = true
-                speechManager.speak("응답이 없습니다. 구조요청을 보내겠습니다. 10초 안에 취소할 수 있습니다")
+                speechManager.speak("구조요청을 보내겠습니다. 10초 안에 취소할 수 있습니다")
                 startEmergencyCountdown()
             }
         }
-        .alert("구조 요청 전 \(emergencyCountdown)초 남음", isPresented: $showEmergencyPrompt) {
-            Button("취소") {
-                showEmergencyPrompt = false
-                emergencyCountdown = 10
-                stationaryCounter = 0
+        .overlay(
+            Group {
+                if showEmergencyPrompt {
+                    VStack(spacing: 12) {
+                        Text("구조 요청까지")
+                            .font(.headline)
+                        Text("\(emergencyCountdown)초 남음")
+                            .font(.largeTitle)
+                            .bold()
+                        Button("취소") {
+                            showEmergencyPrompt = false
+                            emergencyCountdown = 10
+                            stationaryCounter = 0
+                        }
+                        .padding(.top, 8)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.black)
+                    .foregroundColor(.white)
+                }
             }
-        }
+        )
         .sheet(isPresented: $showHealthSubmitPrompt) {
             Group {
                 if let healthData = healthData {
@@ -105,7 +113,7 @@ struct NavigationResultView: View {
             let distance = calculateDistance(from: current, to: next)
 
             let turnType = feature.properties.turnType
-            let (text, icon) = directionTextAndIcon(for: turnType, feature: feature)
+            let (text, icon) = NavigationDirectionHelper.directionTextAndIcon(for: feature.properties.turnType, feature: feature)
 
             VStack(spacing: 2) {
                 Text("다음 지점까지 거리")
@@ -113,6 +121,10 @@ struct NavigationResultView: View {
                 Text("\(Int(distance)) m")
                     .font(.system(size: 30, weight: .bold))
 
+                Divider()
+                    .frame(height: 1)
+                    .background(Color.gray.opacity(0.6))
+                    .padding(.vertical, 8)
                 if !text.isEmpty && !icon.isEmpty {
                     Label {
                         Text(text)
@@ -137,14 +149,24 @@ struct NavigationResultView: View {
             .padding(.bottom, 4)
             .background(
                 Color.clear.onAppear {
-                    let spokenText = instructionText(for: feature, distance: distance)
+                    let spokenText = NavigationDirectionHelper.instructionText(for: feature, distance: distance)
                     if !spokenText.isEmpty {
                         pendingInstructionText = spokenText
                         shouldSpeakInstruction = true
                     }
 
                     if turnType == 201 {
-                        showHealthSubmitPrompt = true
+                        Task {
+                            do {
+                                let data = try await HealthKitManager.shared.fetchHealthData(with: current)
+                                DispatchQueue.main.async {
+                                    self.healthData = data
+                                    self.showHealthSubmitPrompt = true
+                                }
+                            } catch {
+                                print("❌ 건강 데이터 수집 실패: \(error)")
+                            }
+                        }
                     }
                 }
             )
@@ -157,6 +179,10 @@ struct NavigationResultView: View {
     private func handleLocationUpdate(_ current: CLLocationCoordinate2D) {
         print("📍 현재 위치: \(current.latitude), \(current.longitude)")
 
+        if isFrozen {
+            return  // 얼려 있으면 무시
+        }
+
         if let previous = previousLocation {
             let distance = calculateDistance(from: previous, to: current)
 
@@ -168,6 +194,8 @@ struct NavigationResultView: View {
             }
 
             if stationaryCounter >= 10 && !showStayPrompt {
+                isFrozen = true
+                stationaryCounter = 0
                 showStayPrompt = true
                 speechManager.speak("현재 같은 곳에 머물러 계신 것으로 확인됩니다. 괜찮으신가요?")
             }
@@ -208,6 +236,7 @@ struct NavigationResultView: View {
                 )
 
                 print("🚨 구조 요청 발송됨")
+                speechManager.speak("구조 요청이 완료되었습니다. 잠시만 기다려주세요.")
             } else {
                 emergencyCountdown -= 1
             }
@@ -230,42 +259,6 @@ struct NavigationResultView: View {
 
                 return fromLocation.distance(from: lhsLocation) < fromLocation.distance(from: rhsLocation)
             })
-    }
-
-    private func directionTextAndIcon(for turnType: Int?, feature: RouteFeature) -> (String, String) {
-        switch turnType {
-        case 1: return ("직진하세요", "arrow.up")
-        case 2: return ("좌회전하세요", "arrow.turn.left.up")
-        case 3: return ("우회전하세요", "arrow.turn.right.up")
-        case 12: return ("유턴하세요", "arrow.uturn.left")
-        case 201: return ("목적지에 도착했습니다", "flag")
-        default:
-            if let desc = feature.properties.description, !desc.isEmpty {
-                return (desc, "info.circle")
-            } else {
-                return ("", "")
-            }
-        }
-    }
-    
-    private func instructionText(for feature: RouteFeature, distance: CLLocationDistance) -> String {
-        let turnType = feature.properties.turnType ?? 0
-        let distanceText = "\(Int(distance))미터"
-
-        switch turnType {
-        case 1: return "\(distanceText) 직진하세요"
-        case 2: return "\(distanceText) 좌회전하세요"
-        case 3: return "\(distanceText) 우회전하세요"
-        case 12: return "\(distanceText) 유턴하세요"
-        case 201: return "목적지에 도착했습니다"
-        default:
-            // description이 있다면 그것을 안내로 활용
-            if let desc = feature.properties.description, !desc.isEmpty {
-                return "\(distanceText) \(desc)"
-            } else {
-                return ""
-            }
-        }
     }
 
     private func calculateDistance(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D) -> CLLocationDistance {

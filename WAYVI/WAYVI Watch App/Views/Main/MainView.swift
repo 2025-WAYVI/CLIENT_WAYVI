@@ -11,6 +11,12 @@ import SwiftUI
 struct MainView: View {
     @AppStorage("isLoggedIn") private var isLoggedIn = false
 
+    init() {
+#if DEBUG
+        UserDefaults.standard.set(false, forKey: "isLoggedIn")
+#endif
+    }
+
     var body: some View {
         if isLoggedIn {
             HomeNavigationView()
