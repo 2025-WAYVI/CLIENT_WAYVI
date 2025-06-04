@@ -11,6 +11,7 @@ struct NavigationResultView: View {
 
     let result: RouteResult
     let countdownTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    @State private var isFrozen = false
 
     @State private var lastSpokenIndex: Int? = nil
     @State private var pendingInstructionText: String? = nil
@@ -39,6 +40,9 @@ struct NavigationResultView: View {
                 }
             }
         }
+        .onAppear {
+                speechManager.speak("길안내를 시작합니다.")
+            }
         .onChange(of: locationManager.currentLocation) { _, current in
             guard let current = current else { return }
             handleLocationUpdate(current)
@@ -51,12 +55,13 @@ struct NavigationResultView: View {
         .alert("계속 길안내를 받으시겠습니까?", isPresented: $showStayPrompt) {
             Button("예") {
                 stationaryCounter = 0
+                isFrozen = false
                 showStayPrompt = false
             }
             Button("아니오") {
                 showStayPrompt = false
                 showEmergencyPrompt = true
-                speechManager.speak("응답이 없습니다. 구조요청을 보내겠습니다. 10초 안에 취소할 수 있습니다")
+                speechManager.speak("구조요청을 보내겠습니다. 10초 안에 취소할 수 있습니다")
                 startEmergencyCountdown()
             }
         }
@@ -116,6 +121,10 @@ struct NavigationResultView: View {
                 Text("\(Int(distance)) m")
                     .font(.system(size: 30, weight: .bold))
 
+                Divider()
+                    .frame(height: 1)
+                    .background(Color.gray.opacity(0.6))
+                    .padding(.vertical, 8)
                 if !text.isEmpty && !icon.isEmpty {
                     Label {
                         Text(text)
@@ -170,6 +179,10 @@ struct NavigationResultView: View {
     private func handleLocationUpdate(_ current: CLLocationCoordinate2D) {
         print("📍 현재 위치: \(current.latitude), \(current.longitude)")
 
+        if isFrozen {
+            return  // 얼려 있으면 무시
+        }
+
         if let previous = previousLocation {
             let distance = calculateDistance(from: previous, to: current)
 
@@ -181,6 +194,8 @@ struct NavigationResultView: View {
             }
 
             if stationaryCounter >= 10 && !showStayPrompt {
+                isFrozen = true
+                stationaryCounter = 0
                 showStayPrompt = true
                 speechManager.speak("현재 같은 곳에 머물러 계신 것으로 확인됩니다. 괜찮으신가요?")
             }
@@ -221,6 +236,7 @@ struct NavigationResultView: View {
                 )
 
                 print("🚨 구조 요청 발송됨")
+                speechManager.speak("구조 요청이 완료되었습니다. 잠시만 기다려주세요.")
             } else {
                 emergencyCountdown -= 1
             }

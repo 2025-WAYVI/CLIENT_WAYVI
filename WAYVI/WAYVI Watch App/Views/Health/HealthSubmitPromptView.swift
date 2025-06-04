@@ -12,15 +12,15 @@ struct HealthSubmitPromptView: View {
     let request: DailyHealthRequest
     var onComplete: () -> Void
     
-    @Environment(\.dismiss) private var dismiss
     @AppStorage("navigateToHome") private var navigateToHome = false
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var speechManager = SpeechManager()
     @State private var didAnnounce = false
     @State private var isSubmitting = false
-    
+
     var body: some View {
         ScrollView {
-            VStack(spacing: 5) {
+            VStack(spacing: 12) {
                 Text("건강 데이터를 제출하시겠습니까?")
                     .multilineTextAlignment(.center)
                     .font(.system(size: 20, weight: .bold))
@@ -39,6 +39,15 @@ struct HealthSubmitPromptView: View {
                 .buttonStyle(.bordered)
             }
             .padding()
+            .background(
+                // 🔁 내부에서는 NavigationDestination만 선언
+                NavigationLink(
+                    destination: HomeNavigationView(),
+                    isActive: $navigateToHome,
+                    label: { EmptyView() }
+                )
+                .hidden()
+            )
         }
         .onAppear {
             if !didAnnounce {
@@ -47,15 +56,17 @@ struct HealthSubmitPromptView: View {
             }
         }
     }
-    
+
     private func submit() {
         isSubmitting = true
-        HealthDailyAPIService.shared.submitHealthData(userId: Int(userId), request: request) { success in
+        HealthDailyAPIService.shared.submitHealthData(userId: userId, request: request) { success in
             DispatchQueue.main.async {
                 isSubmitting = false
                 if success {
                     speechManager.speak("건강 데이터를 성공적으로 제출했습니다.")
-                    navigateToHome = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                        navigateToHome = true
+                    }
                 } else {
                     speechManager.speak("건강 데이터 제출에 실패했습니다.")
                 }

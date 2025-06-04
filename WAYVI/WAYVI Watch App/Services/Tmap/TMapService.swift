@@ -90,7 +90,7 @@ class TMapService {
                 return
             }
 
-            print("📦 raw pedestrian route 응답: \(String(data: data, encoding: .utf8) ?? "nil")")
+//            print("📦 raw pedestrian route 응답: \(String(data: data, encoding: .utf8) ?? "nil")")
 
             let result = try? JSONDecoder().decode(RouteResult.self, from: data)
             completion(result)

@@ -46,11 +46,11 @@ struct HomeNavigationView: View {
                         Label("건강 레포트", systemImage: "heart.text.square")
                     }
                     .buttonStyle(.bordered)
-                    .simultaneousGesture(
-                        TapGesture().onEnded {
-                            speechManager.speak("건강 레포트를 누르셨습니다.")
-                        }
-                    )
+//                    .simultaneousGesture(
+//                        TapGesture().onEnded {
+//                            speechManager.speak("건강 레포트를 누르셨습니다.")
+//                        }
+//                    )
                 }
             }
             .padding()
