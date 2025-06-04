@@ -18,6 +18,7 @@ struct HomeNavigationView: View {
     @StateObject private var loginViewModel = LoginViewModel()
     @State private var showResultView = false
     @State private var showTransitView = false
+    @State private var showMockNavigation = false
 
     var body: some View {
         NavigationStack {
@@ -63,6 +64,9 @@ struct HomeNavigationView: View {
                     Text("경로 정보를 불러오지 못했습니다.")
                 }
             }
+            .navigationDestination(isPresented: $showMockNavigation) {
+                MockNavigationView()
+            }
             .navigationDestination(isPresented: $showTransitView) {
                 TransitSelectionView()
             }
@@ -96,6 +100,9 @@ struct HomeNavigationView: View {
                let location = locationManager.currentLocation {
                 showResultView = false
                 viewModel.searchRoute(currentLocation: location, destination: destination)
+//                // 실제 API 호출 대신 Mock 보기로 전환
+//                // TODO
+//                            showMockNavigation = true
             }
         }
     }

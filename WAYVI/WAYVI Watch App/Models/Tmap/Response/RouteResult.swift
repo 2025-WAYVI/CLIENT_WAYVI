@@ -42,9 +42,17 @@ struct Geometry: Decodable, Equatable {
     }
 }
 
+extension Geometry {
+    init(type: String, coordinates: [[Double]]?) {
+        self.type = type
+        self.coordinates = coordinates
+    }
+}
+
 struct RouteProperties: Decodable, Equatable {
     let totalDistance: Int?
     let totalTime: Int?
+//    let distance: Int?
     let description: String?
     let turnType: Int?
 }
