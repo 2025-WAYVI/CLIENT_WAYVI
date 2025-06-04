@@ -19,7 +19,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
         #if targetEnvironment(simulator)
         // ✅ 시뮬레이터일 경우: 더미 좌표를 자동 주입
-        let mockLocation = CLLocationCoordinate2D(latitude: 37.5615, longitude: 126.9940) // 충무로역
+        let mockLocation = CLLocationCoordinate2D(latitude: 37.56141113963326, longitude: 126.99555016821692) // 충무로역
         self.currentLocation = mockLocation
         self.locationStatus = .success(mockLocation)
         print("🧪 시뮬레이터용 mock 위치 주입됨: \(mockLocation.latitude), \(mockLocation.longitude)")

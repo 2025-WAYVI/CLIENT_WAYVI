@@ -110,7 +110,7 @@ struct NavigationResultView: View {
             let distance = calculateDistance(from: current, to: next)
 
             let turnType = feature.properties.turnType
-            let (text, icon) = directionTextAndIcon(for: turnType, feature: feature)
+            let (text, icon) = NavigationDirectionHelper.directionTextAndIcon(for: feature.properties.turnType, feature: feature)
 
             VStack(spacing: 2) {
                 Text("다음 지점까지 거리")
@@ -142,7 +142,7 @@ struct NavigationResultView: View {
             .padding(.bottom, 4)
             .background(
                 Color.clear.onAppear {
-                    let spokenText = instructionText(for: feature, distance: distance)
+                    let spokenText = NavigationDirectionHelper.instructionText(for: feature, distance: distance)
                     if !spokenText.isEmpty {
                         pendingInstructionText = spokenText
                         shouldSpeakInstruction = true
@@ -245,42 +245,6 @@ struct NavigationResultView: View {
 
                 return fromLocation.distance(from: lhsLocation) < fromLocation.distance(from: rhsLocation)
             })
-    }
-
-    private func directionTextAndIcon(for turnType: Int?, feature: RouteFeature) -> (String, String) {
-        switch turnType {
-        case 1: return ("직진하세요", "arrow.up")
-        case 2: return ("좌회전하세요", "arrow.turn.left.up")
-        case 3: return ("우회전하세요", "arrow.turn.right.up")
-        case 12: return ("유턴하세요", "arrow.uturn.left")
-        case 201: return ("목적지에 도착했습니다", "flag")
-        default:
-            if let desc = feature.properties.description, !desc.isEmpty {
-                return (desc, "info.circle")
-            } else {
-                return ("", "")
-            }
-        }
-    }
-    
-    private func instructionText(for feature: RouteFeature, distance: CLLocationDistance) -> String {
-        let turnType = feature.properties.turnType ?? 0
-        let distanceText = "\(Int(distance))미터"
-
-        switch turnType {
-        case 1: return "\(distanceText) 직진하세요"
-        case 2: return "\(distanceText) 좌회전하세요"
-        case 3: return "\(distanceText) 우회전하세요"
-        case 12: return "\(distanceText) 유턴하세요"
-        case 201: return "목적지에 도착했습니다"
-        default:
-            // description이 있다면 그것을 안내로 활용
-            if let desc = feature.properties.description, !desc.isEmpty {
-                return "\(distanceText) \(desc)"
-            } else {
-                return ""
-            }
-        }
     }
 
     private func calculateDistance(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D) -> CLLocationDistance {
