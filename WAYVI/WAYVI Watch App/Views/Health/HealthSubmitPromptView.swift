@@ -34,7 +34,6 @@ struct HealthSubmitPromptView: View {
 
                 Button("취소") {
                     speechManager.speak("건강 데이터 제출을 취소했습니다.")
-                    dismiss()
                     onComplete()
                 }
                 .buttonStyle(.bordered)
@@ -60,7 +59,6 @@ struct HealthSubmitPromptView: View {
                 } else {
                     speechManager.speak("건강 데이터 제출에 실패했습니다.")
                 }
-                dismiss()
                 onComplete()
             }
         }

@@ -23,7 +23,6 @@ struct NavigationResultView: View {
     @State private var emergencyCountdown: Int = 10
     @State private var isMotionZero: Bool = false
     @State private var showHealthSubmitPrompt = false
-    @State private var shouldNavigateToHome = false
     
     @State private var healthData: HealthData? = nil
     @AppStorage("userId") private var userId: Int = -1
@@ -91,7 +90,6 @@ struct NavigationResultView: View {
                         healthData: healthData,
                         onComplete: {
                             showHealthSubmitPrompt = false
-                            shouldNavigateToHome = true
                         }
                     )
                 } else {

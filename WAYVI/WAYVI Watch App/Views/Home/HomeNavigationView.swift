@@ -94,6 +94,7 @@ struct HomeNavigationView: View {
         ) { results in
             if let destination = results?.first as? String,
                let location = locationManager.currentLocation {
+                showResultView = false
                 viewModel.searchRoute(currentLocation: location, destination: destination)
             }
         }

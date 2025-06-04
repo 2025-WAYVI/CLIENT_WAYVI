@@ -31,14 +31,12 @@ struct HealthAlertView: View {
                 Button("예") {
                     isResponseReceived = true
                     fallManager.fallDetected = false
-                    dismiss()
                 }
                 .buttonStyle(.borderedProminent)
 
                 Button("아니오") {
                     isResponseReceived = true
                     fallManager.fallDetected = false
-                    dismiss()
                     HealthKitManager.shared.sendEmergencyRequest(
                         userId: userId,
                         event: fallManager.alertMessage
