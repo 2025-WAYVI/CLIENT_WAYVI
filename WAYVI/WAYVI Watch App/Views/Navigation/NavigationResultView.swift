@@ -43,9 +43,11 @@ struct NavigationResultView: View {
         .onAppear {
                 speechManager.speak("길안내를 시작합니다.")
             }
-        .onChange(of: locationManager.currentLocation) { _, current in
-            guard let current = current else { return }
-            handleLocationUpdate(current)
+        
+        .onReceive(countdownTimer) { _ in
+            if let current = locationManager.currentLocation {
+                handleLocationUpdate(current)
+            }
         }
         .onChange(of: shouldSpeakInstruction) { _, newValue in
             if newValue, let message = pendingInstructionText {

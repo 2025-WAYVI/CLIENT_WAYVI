@@ -85,8 +85,17 @@ struct HealthReportView: View {
                     }
                     .onAppear {
                         if !hasSpokenSummary {
-                            speechManager.speak("어제는 " + report.summary + "으로 분류되었습니다" + commentText(for: report.summary))
                             hasSpokenSummary = true
+                            let summaryText = "어제는 \(report.summary)으로 분류되었습니다. \(commentText(for: report.summary))"
+                            
+                            speechManager.speak(summaryText) {
+                                // 첫 음성이 끝나고 나서 실행됨
+                                if report.summary == "위험신호형", !report.warning.isEmpty, !hasSpokenWarning {
+                                    hasSpokenWarning = true
+                                    let joined = report.warning.joined(separator: ", ")
+                                    speechManager.speak("\(joined)을 주의하세요")
+                                }
+                            }
                         }
                     }
 
@@ -107,13 +116,6 @@ struct HealthReportView: View {
                             }
                         }
                         .frame(maxWidth: .infinity)
-                        .onAppear {
-                            if !hasSpokenWarning {
-                                let joined = report.warning.joined(separator: ", ")
-                                speechManager.speak("\(joined)을 주의하세요")
-                                hasSpokenWarning = true
-                            }
-                        }
                     }
                 } else if let errorMessage = viewModel.errorMessage {
                     GeometryReader { geometry in
