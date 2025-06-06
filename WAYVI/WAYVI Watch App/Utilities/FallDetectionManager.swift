@@ -14,6 +14,10 @@ class FallDetectionManager: ObservableObject {
     @Published var fallDetected: Bool = false
     @Published var alertMessage: String = ""
     @Published var showFatigueView: Bool = false
+    
+    // 응답 대기 상태 추가
+    @Published var showEmergencyPrompt: Bool = false
+    @Published var countdownSeconds: Int = 10
 
     public init() {}
 }
