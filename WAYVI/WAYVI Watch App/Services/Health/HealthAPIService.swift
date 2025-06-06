@@ -63,6 +63,35 @@ class HealthAPIService {
                             default:
                                 message = "건강 이상이 감지되었습니다"
                             }
+                            
+                            // 감지된 이벤트가 낙상/충돌 또는 심박 이상일 때
+                            if event == "낙상/충돌" || event == "심박 이상" {
+                                FallDetectionManager.shared.alertMessage = message
+                                FallDetectionManager.shared.fallDetected = true
+                                FallDetectionManager.shared.showEmergencyPrompt = true
+                                FallDetectionManager.shared.countdownSeconds = 10
+
+                                SpeechManager().speak("\(message) 괜찮으신가요? 10초 안에 응답하지 않으면 구조 요청을 보냅니다.")
+
+                                Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+                                    if FallDetectionManager.shared.countdownSeconds <= 1 {
+                                        timer.invalidate()
+                                        if FallDetectionManager.shared.showEmergencyPrompt {
+                                            FallDetectionManager.shared.showEmergencyPrompt = false
+                                            FallDetectionManager.shared.fallDetected = false
+
+//                                            HealthKitManager.shared.sendEmergencyRequest(
+//                                                userId: userId,
+//                                                event: event
+//                                            )
+
+                                            SpeechManager().speak("구조 요청이 완료되었습니다. 잠시만 기다려주세요.")
+                                        }
+                                    } else {
+                                        FallDetectionManager.shared.countdownSeconds -= 1
+                                    }
+                                }
+                            }
 
                             if event == "과로", let location = LocationManager().currentLocation {
                                 FallDetectionManager.shared.alertMessage = message

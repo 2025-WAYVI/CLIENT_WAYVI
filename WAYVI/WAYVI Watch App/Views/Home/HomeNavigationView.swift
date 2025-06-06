@@ -68,7 +68,7 @@ struct HomeNavigationView: View {
                 MockNavigationView()
             }
             .navigationDestination(isPresented: $showTransitView) {
-                TransitSelectionView()
+                TransitSelectionView().environmentObject(speechManager)
             }
             .onChange(of: viewModel.routeResult, initial: false) { oldValue, newValue in
                 if newValue != nil {
